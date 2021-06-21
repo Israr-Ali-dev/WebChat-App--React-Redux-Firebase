@@ -1,0 +1,69 @@
+ 1- Upload BASE64 image on firbase Storage:   uploadFiles.forEach((file) => {
+      const reader = new FileReader();
+
+      reader.onabort = () => console.log('file reading was aborted');
+      reader.onerror = () => console.log('file reading has failed');
+      reader.onload = () => {
+        // Do whatever you want with the file contents
+        console.log(reader.result);
+        if (reader.result) {
+         
+          const uploadTask = storageRef
+            .child(`/chat/public/${uuidv4()}.jpg`)
+            .putString(reader.result, 'data_url', { contentType: 'image/jpg' });
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              console.log(snapshot);
+            },
+            (err) => {
+              console.error(err);
+            },
+            () => {
+              uploadTask.snapshot.ref
+                .getDownloadURL()
+                .then((downloadUrl) => {
+                  console.log(downloadUrl);
+                })
+                .catch((err) => {
+                  console.error(err);
+                });
+            }
+          );
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+
+
+2- For simple Image Upload:  if (e.target.files[0]) {
+      const uploadTask = firebase
+        .storage()
+        .ref(`/images/${e.target.files[0].name}`)
+        .put(e.target.files[0]);
+      uploadTask.on('state_changed', console.log, console.error, () => {
+        firebase.storage
+          .ref('images')
+          .child(e.target.files[0].name)
+          .getDownloadURL()
+          .then((url) => {
+            console.log(url);
+          });
+      });
+    }
+
+
+3- Update data in Firebase with multiple constion usinf nested functions like:  
+
+     msgsRef
+      .orderByChild('sender/id')  // Condition 1
+      .equalTo(userID)
+      .on('value', function (snapshot) {
+        snapshot.ref
+          .orderByChild('receiver/id')   // Condition 2
+          .equalTo('none')
+          .on('value', function (snapshot) {
+            
+            console.log(snapshot.val());
+          }); 
